@@ -35,7 +35,7 @@
         <el-button
           :disabled="saveBtnDisabled"
           type="primary"
-          @click="saveTeacher"
+          @click="saveOrUpdate()"
           >保存</el-button
         >
       </el-form-item>
@@ -59,26 +59,69 @@ export default {
       saveBtnDisabled: false // 保存按钮是否禁用,
     };
   },
-  created(){
-
+  created() {
+    this.init()
   },
-  methods:{
-    saveOrUpdate(){
-
+  watch: {
+    // 监听
+    $route(to, from) {
+      // 路由变化方式
+      console.log('watch $route');
+      this.init();
+    }
+  },
+  methods: {
+    init() {
+      // 判断路径中是否有id值
+      if (this.$route.params && this.$route.params.id) {
+        const id = this.$route.params.id;
+        this.getInfo(id);
+      } else {
+        // 清空表单
+        this.teacher = {};
+      }
+    },
+    // 根据讲师id查询方法
+    getInfo(id) {
+      teacherApi.getTeacherInfo(id).then(response => {
+        this.teacher = response.data.teacher;
+      });
+    },
+    saveOrUpdate() {
+      // 判断是修改还是添加
+      // 根据teacher是否有id
+      if (!this.teacher.id) {
+        // 添加
+        this.saveTeacher();
+      } else {
+        // 修改
+        this.updateTeacher();
+      }
     },
 
     // 添加讲师的方法
-    saveTeacher(){
-      teacherApi.addTeacher(this.teacher)
-      .then(response => {
+    saveTeacher() {
+      teacherApi.addTeacher(this.teacher).then(response => {
         // 提示信息
         this.$message({
-            type: 'success',
-            message: '添加成功!'
-          });
+          type: 'success',
+          message: '添加成功!'
+        });
         // 回到列表页面 路由跳转
-        this.$router.push({path:'/teacher/table'})
-      })
+        this.$router.push({ path: '/teacher/table' });
+      });
+    },
+    // 修改讲师的方法
+    updateTeacher() {
+      teacherApi.updateTeacherInfo(this.teacher).then(response => {
+        // 提示信息
+        this.$message({
+          type: 'success',
+          message: '修改成功!'
+        });
+        // 回到列表页面 路由跳转
+        this.$router.push({ path: '/teacher/table' });
+      });
     }
   }
 };
